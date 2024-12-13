@@ -16,7 +16,7 @@ public class NoticeRepository {
 
 	/* 
 	 * redis-cli command
-	 * hset key value
+	 * set key value
 	 */
 	public void insertNotices(String key, JsonObject jsonPayload) {
 		template.opsForValue().set(key, jsonPayload.toString());

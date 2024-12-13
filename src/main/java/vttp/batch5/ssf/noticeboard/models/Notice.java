@@ -75,6 +75,4 @@ public class Notice {
     public void setPostDate(Date postDate) {
         this.postDate = postDate;
     }
-
-    
 }

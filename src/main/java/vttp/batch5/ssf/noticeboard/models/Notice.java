@@ -1,6 +1,11 @@
 package vttp.batch5.ssf.noticeboard.models;
 
+import java.util.Date;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +14,7 @@ import jakarta.validation.constraints.Size;
 public class Notice {
 
     @NotBlank
-    @Size(min=3, max=128, message="Title length must be between 3 and 128 characters.")
+    @Size(min=3, max=128, message="title length must be between 3 and 128 characters.")
     private String title;        // Notice title
 
     @NotBlank
@@ -17,9 +22,12 @@ public class Notice {
     private String poster;       // Notice poster's email
 
     @NotNull
-    private Long postDate;       // Post date in epoch time
+    @Future
+    @DateTimeFormat(pattern="yyyy-MM-dd")
+    private Date postDate;       // Post date
 
     @NotEmpty
+    @Size(min=1, message="must include at least one category")
     private String[] categories; // List of categories
 
     @NotBlank
@@ -44,14 +52,6 @@ public class Notice {
         this.poster = poster;
     }
 
-    public Long getPostDate() {
-        return postDate;
-    }
-
-    public void setPostDate(Long postDate) {
-        this.postDate = postDate;
-    }
-
     public String[] getCategories() {
         return categories;
     }
@@ -66,6 +66,14 @@ public class Notice {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Date getPostDate() {
+        return postDate;
+    }
+
+    public void setPostDate(Date postDate) {
+        this.postDate = postDate;
     }
 
     

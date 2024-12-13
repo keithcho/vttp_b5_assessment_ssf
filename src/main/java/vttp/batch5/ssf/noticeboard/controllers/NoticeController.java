@@ -39,21 +39,21 @@ public class NoticeController {
     }
 
     // Task 2
+    // POST mapping to handle form submission
     @PostMapping("/notice")
-    public String postValidation(@Valid @ModelAttribute Notice notice, BindingResult binding) {
+    public String postValidation(@Valid @ModelAttribute Notice notice, BindingResult binding, Model model) {
 
         // If fields are invalid, return notice.html with error messages displayed
         if (binding.hasErrors()) {
             return "notice";
         }
 
-        Long postDate = notice.getPostDate().getTime();
-
+        // Build JSON payload from received form data
         JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
         
         jsonObjectBuilder.add("title", notice.getTitle());
         jsonObjectBuilder.add("poster", notice.getPoster());
-        jsonObjectBuilder.add("postDate", postDate);
+        jsonObjectBuilder.add("postDate", notice.getPostDate().getTime());
         
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         for (String category : notice.getCategories()) {
@@ -64,22 +64,29 @@ public class NoticeController {
 
         JsonObject requestPayload = jsonObjectBuilder.build();
 
-        
         try {
-            JsonObject response = noticeService.postToNoticeServer(requestPayload);
+            // Submits JSON payload to server endpoint. If successful, returns view 2
+            String response = noticeService.postToNoticeServer(requestPayload);
+            model.addAttribute("response", response);
+            return "view2";
         } catch (Exception e) {
+            // If unsuccessful, redirects to view 3 with an error message displayed
             logger.error(e.toString());
+            model.addAttribute("error", e.toString());
             return "view3";
         }
-
-        return "success";
     }
 
+    // Task 6
+    // Health status endpoint for Docker container
     @GetMapping(path="/status")
     @ResponseBody
     public ResponseEntity<Object> getHealth() {
-        return new ResponseEntity<Object>("", HttpStatus.OK);
-    }
-    
 
+        if (noticeService.isRedisHealthy()) {
+            return new ResponseEntity<>("", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+    }
 }

@@ -33,7 +33,7 @@ public class NoticeService {
 	// Task 3
 	// Submits a POST request and if successful, returns the notice id from the server.
 	// If unsuccessful, returns an error message.
-	public String postToNoticeServer(JsonObject jsonPayload) {
+	public String postToNoticeServer(JsonObject jsonPayload) throws Exception {
 		
 		RestTemplate template = new RestTemplate();
 		
@@ -55,25 +55,29 @@ public class NoticeService {
 			// Store response payload into a JsonObject
 			JsonReader jsonReader = Json.createReader(new StringReader(responseBody));
 			JsonObject jsonObject = jsonReader.readObject();
-			
-			// Add successful response to Redis
-			try {
-				String redisIdKey = jsonObject.getString("id");
-				logger.info(jsonObject.toString());
-				noticeRepository.insertNotices(redisIdKey, jsonObject);
-				logger.info("Successfully added notice id " + redisIdKey + " to Redis");
-				return redisIdKey;
-			} catch (Exception e) {
-				logger.error(e.toString());
-				return e.toString();
+
+			if (response.getStatusCode().is2xxSuccessful()) {
+				// Add successful response to Redis
+				try {
+					String redisIdKey = jsonObject.getString("id");
+					logger.info(jsonObject.toString());
+					noticeRepository.insertNotices(redisIdKey, jsonObject);
+					logger.info("Successfully added notice id " + redisIdKey + " to Redis");
+					return redisIdKey;
+				} catch (Exception e) {
+					logger.error(e.toString());
+					throw new Exception(e.toString());
+				}
+			} else {
+				throw new Exception(jsonObject.getString("message"));
 			}
-			
+
 		// Catch and log HTTP exceptions
 		} catch (HttpStatusCodeException e) {
 			logger.error("Status code: " + e.getStatusCode() + ", " + e.getResponseBodyAsString());
 			JsonReader jsonReader = Json.createReader(new StringReader(e.getResponseBodyAsString()));
 			JsonObject jsonObject = jsonReader.readObject();
-			return (jsonObject.getString("message"));
+			throw new Exception(jsonObject.getString("message"));
 		}
 	}
 
